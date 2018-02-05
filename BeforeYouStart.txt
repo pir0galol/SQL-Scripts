@@ -1,0 +1,42 @@
+-- 0) Using Oracle 12C R1 Database
+
+-- 1) In order to create a new database schema, the CMD window must be opened with
+-- administrative privileges
+C:\Windows\system32>sqlplus sys/Test1234@TESTDB as sysdba
+
+-- 2) We will create now a new schema named movies_admin.
+SQL> create user movies_admin identified by "Test1234";
+
+-- 3) And we will grant privileges to it (we used GRANT ALL PRIVILEGES clause in order to not
+-- bother with each one considering that the schema is the main one). 
+SQL>GRANT ALL PRIVILEGES to movies_admin;
+SQL> GRANT UNLIMITED TABLESPACE to movies_admin;
+
+-- 4) We will simulate the distribution of data on different disks. Therefore, we will be creating the
+-- tablespaces in different locations (X:/disk1/, X:/disk2/, X:/disk3/).
+CREATE TABLESPACE data_TBS DATAFILE 'X:\disk1\data_TBS.DBF' SIZE 2G AUTOEXTEND
+ON EXTENT MANAGEMENT LOCAL UNIFORM SIZE 5M SEGMENT SPACE MANAGEMENT
+AUTO;
+
+CREATE TABLESPACE index_TBS DATAFILE 'X:\disk2\index_TBS.DBF' SIZE 100M
+AUTOEXTEND ON EXTENT MANAGEMENT LOCAL UNIFORM SIZE 5M SEGMENT SPACE
+MANAGEMENT AUTO;
+
+CREATE TABLESPACE cluster_TBS DATAFILE 'X:\disk2\cluster_TBS.DBF' SIZE 2G
+AUTOEXTEND ON EXTENT MANAGEMENT LOCAL UNIFORM SIZE 5M SEGMENT SPACE
+MANAGEMENT AUTO;
+
+CREATE TABLESPACE bk_TBS DATAFILE 'X:\disk3\bk_TBS.DBF' SIZE 2G AUTOEXTEND ON
+EXTENT MANAGEMENT LOCAL UNIFORM SIZE 5M SEGMENT SPACE MANAGEMENT
+AUTO;
+
+-- 5) We must alter the earlier created user to have the default database data_TBS
+SQL>Alter user movies_admin default tablespace data_tbs quota unlimited on data_tbs;
+
+-- 6) Log in the user
+CONNECT movies_admin/Test1234@TESTDB
+
+-- 7) Load the table creation + population scripts (movies.sql and scripts.sql)
+
+-- NOTE! The population script will only populate with desired values (1kk, 500k etc)
+-- for certain tables, not all are being populated
